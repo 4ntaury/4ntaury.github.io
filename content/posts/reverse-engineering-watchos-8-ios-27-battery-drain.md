@@ -152,9 +152,9 @@ Deleting `activity-analog` from *My Faces* and disabling Activity Coaching compl
 
 ### Weaponizing a Watchdog Timeout as an Automated Hourly System Profiler
 
-Fortunately, another quirk handed us a surgical diagnostic weapon. Every hour on the `:51` - `:54` minute mark, `Carousel` attempted a routine background Dock UI snapshot (`CSLSceneSnapshotAction`) of the Apple Stocks watch app (`NanoStocks`). Because the dual-core S3 CPU was already heavily loaded, `NanoStocks` timed out its 2-second watchdog budget, causing watchOS to write a **full-system kernel + user-space stackshot (`stacks+NanoStocks-*.ips`, `bug_type: 288`)**.
+Fortunately, another watchOS quirk provided a surgical diagnostic capability. Every hour on the `:51` - `:54` minute mark, `Carousel` attempted a routine background Dock UI snapshot (`CSLSceneSnapshotAction`) of the Apple Stocks watch app (`NanoStocks`). Because the dual-core S3 CPU was already heavily loaded, `NanoStocks` timed out its 2-second watchdog budget, causing watchOS to write a **full-system kernel + user-space stackshot (`stacks+NanoStocks-*.ips`, `bug_type: 288`)**.
 
-Each `bug_type: 288` JSON payload records the exact cumulative `userTimeTask` and `systemTimeTask` of all ~212 running processes and kernel threads. By writing a Python parser to compute deltas across back-to-back hourly stackshots (`10:51` -> `11:51` -> `12:52` -> `13:54`), we obtained an exact per-hour CPU profile of the entire operating system:
+Each `bug_type: 288` JSON payload records the exact cumulative `userTimeTask` and `systemTimeTask` of all ~212 running processes and kernel threads. By writing a Python parser to compute deltas across back-to-back hourly stackshots (`10:51` -> `11:51` -> `12:52` -> `13:54`), an exact per-hour CPU profile of the entire operating system was obtained:
 
 * **SoC Wake Time:** Out of `3,623s` in Hour 1, the processor was awake for **`3,342s` (`92.2%`)**, getting less than **5 minutes of sleep per hour**.
 * **Total CPU Burned:** **`2,541–2,551 CPU-seconds/hour`**, equivalent to **71% of a full CPU core pinned nonstop** while the watch sat untouched.
@@ -171,7 +171,7 @@ In the hourly stackshot deltas, two distinct groups of processes dominated the C
 
 Inspecting the Watch's *Settings -> Wi-Fi* UI revealed an anomaly: Wi-Fi was toggled ON, and the local network appeared in the available list, **but the watch was not associated** until manually tapped. Because the Series 3 only has a **2.4 GHz `802.11b/g/n`** radio while the iPhone connects on **5 GHz / 6 GHz**, iOS 27.0.2 re-syncing network metadata left watchOS `wifid` stuck in a broken background scan/fault loop.
 
-To measure exactly how much of the storm came from Wi-Fi, we toggled Watch Wi-Fi **OFF** inside *Settings* at `14:25 UTC` (routing notifications and calls purely over Bluetooth through the iPhone) while leaving `NanoStocks` in the Dock to keep capturing hourly profiles across five consecutive hours (`H1–H3` Wi-Fi ON, `H4` transition, `H5` Wi-Fi OFF):
+To measure exactly how much of the storm came from Wi-Fi, Watch Wi-Fi was toggled **OFF** inside *Settings* at `14:25 UTC` (routing notifications and calls purely over Bluetooth through the iPhone) while leaving `NanoStocks` in the Dock to keep capturing hourly profiles across five consecutive hours (`H1–H3` Wi-Fi ON, `H4` transition, `H5` Wi-Fi OFF):
 
 | Process / Kernel Thread | `H1` (Wi-Fi ON) | `H2` (Wi-Fi ON) | `H3` (Wi-Fi ON) | `H4` (Transition) | **`H5` (Wi-Fi OFF)** | Delta (`H3` -> `H5`) |
 | :--- | :---: | :---: | :---: | :---: | :---: | :---: |
@@ -203,7 +203,7 @@ At this point, only two hypotheses remained for what was driving `IOPMrootDomain
 
 ### The 2-Hour Radio Isolation Experiment
 
-To separate hardware from the companion link definitively, we placed the watch into **Airplane Mode with both Wi-Fi and Bluetooth completely OFF** for two full hours (`17:01` -> `19:05 UTC`), starting at **58% battery**:
+To separate hardware from the companion link definitively, the watch was placed into **Airplane Mode with both Wi-Fi and Bluetooth completely OFF** for two full hours (`17:01` -> `19:05 UTC`), starting at **58% battery**:
 
 * **Starting Battery (`17:01 UTC`):** `58%`
 * **Ending Battery (`19:05 UTC`, 2h 04m later):** `52%` (`6%` total drop)
@@ -223,7 +223,7 @@ Soft reboots and app settings couldn't fix it because the corruption lived insid
 
 ## 6. Wiping Clean & Navigating Three Post-Reset Compatibility Landmines
 
-To avoid re-importing poisoned sync plists from a watch backup, we unpaired the watch, wiped it, and paired it with the iOS 27.0.2 iPhone using **Set Up as New**.
+To avoid re-importing poisoned sync plists from a watch backup, the watch was unpaired, wiped, and paired with the iOS 27.0.2 iPhone using **Set Up as New**.
 
 Watching the fresh pairing telemetry (`Bridge-Pair-Performance-Report-*.txt` and post-setup `.ips` logs) revealed **three separate iOS 27 -> watchOS 8 compatibility bugs** firing during the first 60 minutes - and showed exactly how to sidestep each of them:
 
@@ -273,7 +273,7 @@ Once the initial asset downloads (`mobileassetd` / `nsurlsessiond`) completed at
 
 ### Test 1: Daytime Connected Idle (`15:00` -> `17:41 UTC`)
 * **Battery:** `47%` -> `41%` over **2 hours 41 minutes** (`6%` drop)
-* **Connected Drain Rate:** **`2.24% / hour`** (even *lower* than our earlier Airplane Mode test, projecting **~44.6 hours** of light standby while fully connected to iPhone calls and notifications!)
+* **Connected Drain Rate:** **`2.24% / hour`** (even *lower* than the earlier Airplane Mode test, projecting **~44.6 hours** of light standby while fully connected to iPhone calls and notifications!)
 
 ### Test 2: Full 15.5-Hour Real-World Wrist Run (Including Overnight Sleep Tracking)
 Charged to `100%` at `22:00` and worn continuously overnight (with optical green PPG heart-rate LEDs pulsing throughout sleep) and into the following afternoon (`13:35`):
@@ -281,7 +281,7 @@ Charged to `100%` at `22:00` and worn continuously overnight (with optical green
 * **Battery Remaining:** **`38%`** (`62%` consumed)
 * **Real-World Drain Rate:** **`3.98% / hour`** - projecting **25.2+ hours** of continuous wrist wear on a 7-year-old, 1,000-cycle battery!
 
-Best of all, a benign CoreMotion timestamp-check stackshot (`stacks-*-111133.ips`) captured after **15 hours of continuous uptime** gave us hard cumulative CPU counters across the entire overnight run - proving the 182-Hz companion storm was completely annihilated:
+Best of all, a benign CoreMotion timestamp-check stackshot (`stacks-*-111133.ips`) captured after **15 hours of continuous uptime** provided hard cumulative CPU counters across the entire overnight run - proving the 182-Hz companion storm was completely annihilated:
 
 | Daemon | Broken State (Per Hour) | Restored Cumulative (15 Hours Total) | **Restored Average (Per Hour)** | **CPU Load Reduction** |
 | :--- | :---: | :---: | :---: | :---: |
