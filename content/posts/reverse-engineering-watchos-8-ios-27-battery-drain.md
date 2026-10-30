@@ -133,6 +133,15 @@ Worse yet, three consecutive crash dumps captured at `17:32:51`, `17:32:59`, and
 
 Every trigger forced three back-to-back SQLite integrity checks and `ReportCrash` memory spikes (`54–69 MB` for `healthd` + `32 MB` for `ReportCrash` on a 512 MB device).
 
+### The Crucial Irony: Fitness Data Is Still Collected
+
+One of the most fascinating aspects of this bug is where the fault line actually lies:
+
+* **Hardware sensors and data collection are 100% functional:** The accelerometer, pedometer, optical heart-rate PPG sensors, and motion coprocessor never stopped working. Steps, active calories, stand hours, and resting heart rates are still recorded accurately by the hardware and seamlessly synced to the Apple Health and Fitness apps on your iPhone.
+* **Only the rendering layer is broken:** Collecting the health metrics draws negligible power and works as intended. The battery-destroying crash loop occurs strictly when watchOS attempts to *display* that data on the watch screen (via the Activity rings complication or watch faces like Activity Analog/Digital), because formatting the visual display requires querying display unit preferences from `healthd`.
+
+This means users do not have to sacrifice fitness tracking to save their watch. All activity metrics continue logging in the background; you simply avoid rendering HealthKit complications directly on your watch faces.
+
 ---
 
 ## 3. Plot Twist: `healthd` Is Cured, Yet the Watch Still Dies in 11 Hours
@@ -293,5 +302,6 @@ Best of all, a benign CoreMotion timestamp-check stackshot (`stacks-*-111133.ips
 4. **Practical survival checklist for watchOS 8 devices paired to modern iOS:**
    * **Unpair and Set Up as New** after major iOS upgrades if idle drain spikes above ~4–5%/hr to clear stale `IDS` / `pairedsync` state.
    * **Remove all Activity-ring watch faces from *My Faces*** (even inactive ones, since `Carousel` preloads them) and add classic firmware faces (`Chronograph`, `Simple`, `Utility`, `Modular` without HealthKit complications) directly from the watch screen.
+   * **Fitness tracking still works seamlessly:** You do not lose your steps, active calories, stand hours, or heart-rate history. The sensors record everything normally in the background and sync to Apple Health on your iPhone - only rendering the rings on the watch face triggers the crash loop.
    * **Disable *Start Workout Reminder*** and *Daily Coaching* to prevent background `remote_fetchUnitPreferencesForTypes:` queries.
    * **Toggle Watch Wi-Fi OFF** in *Settings -> Wi-Fi* (keeping Bluetooth ON for calls and notifications) and remove unused apps from the **Dock**.
