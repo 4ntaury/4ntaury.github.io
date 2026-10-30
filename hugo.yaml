@@ -47,9 +47,9 @@ params:
   tocopen: false
 
   homeInfoParams:
-    Title: "4ntaury // Security & Systems"
+    Title: "4ntaury // Defense in Depth"
     Content: >
-      Technical write-ups on cybersecurity, binary reverse engineering, operating system internals, and hardware/software forensics.
+      Technical write-ups on cybersecurity, reverse engineering, operating system internals, and forensics.
 
   socialIcons:
     - name: github
