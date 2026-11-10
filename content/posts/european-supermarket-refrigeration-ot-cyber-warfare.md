@@ -1,6 +1,6 @@
 ---
 title: "Weaponizing the Cold Chain: Inside Europe's Supermarket Refrigeration Cyber-Sabotage and the Rise of Soft-OT Hybrid Warfare"
-date: 2026-11-10T13:30:00Z
+date: 2026-11-10T12:00:00Z
 draft: false
 tags: ["OT-security", "ICS", "cyber-warfare", "hybrid-warfare", "SCADA", "Danfoss", "Dixell", "critical-infrastructure", "threat-intelligence"]
 categories: ["Cyber Warfare & Threat Intelligence", "OT & ICS Security"]
